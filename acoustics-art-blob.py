@@ -64,6 +64,7 @@ class MainWin(object):
         if not data:
             return
         if not 'now_playing' in data or not data['now_playing']:
+            self.last_image = None
             self.image.clear()
             self.label.set_text("Nothing playing.")
             self.label.set_xalign(0)
