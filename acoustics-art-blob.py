@@ -29,11 +29,10 @@ class Acoustics(object):
             r = urllib.request.urlopen(r)
             return r.read()
         except:
-            return '{}'
+            return b'{}'
 
     def query(self):
         json_output = self.curl(self.prefix)
-        if isinstance(json_output, str): return json.loads(json_output)
         return json.loads(json_output.decode('utf-8'))
 
     def albumart(self, song_id, size):
