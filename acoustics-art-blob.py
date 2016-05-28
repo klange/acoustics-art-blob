@@ -70,19 +70,20 @@ class MainWin(object):
 
     def set_label_alignment(self, alignment):
         alignments = {
-            "bottom": (0,1),
-            "top": (0,0),
-            "center": (0.5,0.5),
-            "center-top": (0.5,0),
-            "center-bottom": (0.5,1),
-            "top-right": (1,0),
-            "bottom-right": (1,1),
+            "bottom": (Gtk.Align.START,Gtk.Align.END,Gtk.Justification.LEFT),
+            "top": (Gtk.Align.START,Gtk.Align.START,Gtk.Justification.LEFT),
+            "center": (Gtk.Align.CENTER,Gtk.Align.CENTER,Gtk.Justification.CENTER),
+            "center-top": (Gtk.Align.CENTER,Gtk.Align.START,Gtk.Justification.CENTER),
+            "center-bottom": (Gtk.Align.CENTER,Gtk.Align.END,Gtk.Justification.CENTER),
+            "top-right": (Gtk.Align.END,Gtk.Align.START,Gtk.Justification.RIGHT),
+            "bottom-right": (Gtk.Align.END,Gtk.Align.END,Gtk.Justification.RIGHT),
         }
         if alignment not in alignments:
             raise ValueError("Invalid alignment for song info: " + alignment)
-        x, y = alignments[alignment]
-        self.label.set_xalign(x)
-        self.label.set_yalign(y)
+        x, y, j = alignments[alignment]
+        self.label.set_halign(x)
+        self.label.set_valign(y)
+        self.label.set_justify(j)
 
     def expose(self, widget, cr):
         """GTK expose event handler - clear the window to rgba(0,0,0,0) with Cairo."""
