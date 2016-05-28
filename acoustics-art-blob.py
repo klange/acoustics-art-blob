@@ -225,11 +225,11 @@ class MainWin(object):
         self.buttons = Gtk.Box()
 
         self._image_stop = Gtk.Image()
-        self._image_stop.set_from_file(os.path.join(os.path.dirname(__file__),"image/stop.svg"))
+        self._image_stop.set_from_file(os.path.join(os.path.dirname(os.path.realpath(__file__)),"image/stop.svg"))
         self._image_play = Gtk.Image()
-        self._image_play.set_from_file(os.path.join(os.path.dirname(__file__),"image/play.svg"))
+        self._image_play.set_from_file(os.path.join(os.path.dirname(os.path.realpath(__file__)),"image/play.svg"))
         self._image_skip = Gtk.Image()
-        self._image_skip.set_from_file(os.path.join(os.path.dirname(__file__),"image/next.svg"))
+        self._image_skip.set_from_file(os.path.join(os.path.dirname(os.path.realpath(__file__)),"image/next.svg"))
 
         self.button_stop = Gtk.Button()
         self.button_play = Gtk.Button()
