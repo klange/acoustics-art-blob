@@ -1,3 +1,10 @@
+#!/usr/bin/env python3
+# coding: utf-8
+"""
+acoustics-art-blob.py - Acoustics Album Art Utility
+
+Displays album art and "now playing" information in a configurable window.
+"""
 from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import Gdk
