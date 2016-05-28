@@ -13,8 +13,10 @@ from gi.repository import GObject
 import cairo
 
 import argparse
+import base64
 import html
 import json
+import os
 import sys
 import http.cookiejar
 import urllib.request, urllib.parse, urllib.error
@@ -30,6 +32,22 @@ class Acoustics(object):
         opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
         urllib.request.install_opener(opener)
         self.prefix = prefix
+        self.is_logged_in = False
+        self.query()
+
+    def authenticate(self, user, password):
+        counter = 0
+        try:
+            auth = base64.b64encode("{user}:{password}".format(user=user,password=password).encode('utf-8'))
+            r = urllib.request.Request(self.prefix + 'www-data/auth',
+                    headers={'Authorization': 'Basic %s' % auth.decode('utf-8')})
+            result = urllib.request.urlopen(r)
+            self.is_logged_in = True
+            return result.read()
+        except:
+            counter += 1
+            if counter == 3:
+                return None
 
     def _curl(self, url):
         try:
@@ -41,12 +59,15 @@ class Acoustics(object):
 
     def query(self):
         """Query the server for now-playing information."""
-        json_output = self._curl(self.prefix)
+        json_output = self._curl(self.prefix + 'json.py')
         return json.loads(json_output.decode('utf-8'))
+
+    def call(self, mode):
+        return self._curl(self.prefix + 'json.py?mode=' + mode)
 
     def album_art(self, song_id, size):
         """Request album art for a particular song_id."""
-        url = self.prefix + '?mode=art;song_id={song};size={size}'.format(
+        url = self.prefix + 'json.py?mode=art;song_id={song};size={size}'.format(
             song=song_id,
             size=size
         )
@@ -189,6 +210,7 @@ class MainWin(object):
         # Hook up event callbacks for the window.
         self.window.connect('draw', self.expose)
         self.window.connect('destroy', self.destroy)
+        self.window.connect('notify::has-toplevel-focus', self.focus_window)
 
         # We use an overlay to display our image and 
         self.container = Gtk.Overlay()
@@ -200,8 +222,40 @@ class MainWin(object):
         self.label.set_text("Loading...")
         self.set_label_alignment(self.args.info_align)
 
+        self.buttons = Gtk.Box()
+
+        self._image_stop = Gtk.Image()
+        self._image_stop.set_from_file(os.path.join(os.path.dirname(__file__),"image/stop.svg"))
+        self._image_play = Gtk.Image()
+        self._image_play.set_from_file(os.path.join(os.path.dirname(__file__),"image/play.svg"))
+        self._image_skip = Gtk.Image()
+        self._image_skip.set_from_file(os.path.join(os.path.dirname(__file__),"image/next.svg"))
+
+        self.button_stop = Gtk.Button()
+        self.button_play = Gtk.Button()
+        self.button_skip = Gtk.Button()
+
+        self.button_stop.set_image(self._image_stop)
+        self.button_play.set_image(self._image_play)
+        self.button_skip.set_image(self._image_skip)
+
+        self.buttons.add(self.button_stop)
+        self.buttons.add(self.button_play)
+        self.buttons.add(self.button_skip)
+        self.buttons.set_valign(Gtk.Align.CENTER)
+        self.buttons.set_halign(Gtk.Align.CENTER)
+
+        self.button_stop.connect('clicked', self.callback_stop)
+        self.button_play.connect('clicked', self.callback_play)
+        self.button_skip.connect('clicked', self.callback_skip)
+
         self.container.add_overlay(self.image)
         self.container.add_overlay(self.label)
+        self.container.add_overlay(self.buttons)
+
+        self.button_stop.show()
+        self.button_play.show()
+        self.button_skip.show()
 
         self.update()
 
@@ -234,6 +288,22 @@ class MainWin(object):
         # A 1-second timeout triggers display updates.
         GObject.timeout_add_seconds(1, self.callback)
 
+    def callback_stop(self, _):
+        acoustics.call('stop')
+
+    def callback_play(self, _):
+        acoustics.call('start')
+
+    def callback_skip(self, _):
+        acoustics.call('skip')
+
+    def focus_window(self, widget, data):
+        if self.window.get_property("has-toplevel-focus"):
+            if acoustics.is_logged_in:
+                self.buttons.show()
+        else:
+            self.buttons.hide()
+
     def callback(self):
         self.update()
         return True
@@ -252,8 +322,9 @@ if __name__ == "__main__":
     parser.add_argument('--size', default=180, type=int, help='Size of the album art and default size of the window.')
 
     # API configuration
-    parser.add_argument('--url', default='http://localhost:6969/json.py', help='Acoustics API endpoint.')
-    # TODO: Username / password for authenticated client
+    parser.add_argument('--url', default='http://localhost:6969/', help='Acoustics API endpoint.')
+    parser.add_argument('--user', default=None, help='Authentication user name')
+    parser.add_argument('--password', default="", help='Authentication password')
 
     # Window management options
     parser.add_argument('--decorated', action='store_true', help='Show window decorations.')
@@ -263,6 +334,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     acoustics = Acoustics(args.url)
+
+    if args.user:
+        results = acoustics.authenticate(args.user, args.password)
+
     MainWin(args).main()
 
 
