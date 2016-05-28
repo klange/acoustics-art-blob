@@ -249,7 +249,7 @@ if __name__ == "__main__":
     # Display options
     parser.add_argument('--song-align', default='bottom', help='How to align the song information in the window.')
     parser.add_argument('--info-align', default='top', help='How to align error messages in the window.')
-    parser.add_argument('--art-align', default='center-bottom', help='How to align the album art in the window.')
+    parser.add_argument('--art-align', default='bottom', help='How to align the album art in the window.')
     parser.add_argument('--size', default=180, type=int, help='Size of the album art and default size of the window.')
 
     # API configuration
