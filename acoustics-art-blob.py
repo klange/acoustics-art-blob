@@ -50,7 +50,8 @@ class Acoustics(object):
 class MainWin(object):
 
     def destroy(self, widget, data=None):
-        Gtk.main_quit()
+        GLib.MainLoop().quit()
+        sys.exit()
 
     def set_art_alignment(self, alignment):
         alignments = {
@@ -91,13 +92,6 @@ class MainWin(object):
         cr.rectangle(0.0,0.0, *widget.get_size())
         cr.fill()
         cr.set_operator(cairo.OPERATOR_OVER)
-        if self.counter < 3:
-            # During the first several seconds of run time, we will
-            # draw a green circle to indicate the bounds of the window.
-            cr.set_source_rgba(0.5,1.0,0.0,1)
-            cr.arc(widget.get_size()[0]/2,widget.get_size()[1]/2,
-                   widget.get_size()[0]/2,0,3.141592654*2)
-            cr.fill()
 
     def update(self):
         """Update the album image and now-playing information."""
@@ -230,13 +224,10 @@ class MainWin(object):
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
         )
 
-        # A 1-second timeout triggers display updates, and also counts
-        # a few seconds to hide the circular window bounds indicator.
-        self.counter = 0
+        # A 1-second timeout triggers display updates.
         GObject.timeout_add_seconds(1, self.callback)
 
     def callback(self):
-        self.counter += 1
         self.update()
         return True
 
